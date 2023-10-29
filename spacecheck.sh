@@ -10,6 +10,7 @@ date=""
 r=""
 limit=""
 dir=""
+options=""
 
 # Processamento e Validação das opções da linha de comando
 while getopts "n:d:s:ral:" opt; do          # ":" após letra indica que necessita de argumento
@@ -73,10 +74,16 @@ echo "SIZE NAME $(date +%Y%m%d) $options $dir"
 
 find "$dir" -type d | \
     while read -r folder; do
-        size=$(du -s "$folder" | awk '{print $1}')
-        echo "$size $folder"
+        size=0
+        while IFS= read -r -d $'\0' file; do
+            if [[ -f "$file" && $(basename "$file") =~ $regex ]]; then
+                size=$((size + $(du -b "$file" | awk '{print $1}')))
+            fi
+        done < <(find "$folder" -type f -print0)
+        if [ "$size" -gt 0 ]; then
+            echo "$size $folder"
+        fi
     done | \
-    awk -v regex="$regex" '$2 ~ regex' | \
     awk -v date="$date" '$2 ~ date' | \
     sort $r | \
     if [ -n "$limit" ]; then head -n "$limit"; else cat; fi
