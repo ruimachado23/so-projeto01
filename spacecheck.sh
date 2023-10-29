@@ -7,7 +7,7 @@
 # Inicializacao de variáveis
 regex=""
 date=""
-r=""
+r="-r"
 limit=""
 dir=""
 options=""
