@@ -7,7 +7,6 @@
 # Inicializacao de variáveis
 regex=""
 date=""
-r="-r"
 limit=""
 dir=""
 options=""
@@ -28,11 +27,9 @@ while getopts "n:d:s:ral:" opt; do          # ":" após letra indica que necessi
             options="$options -$opt \"$OPTARG\""
             ;;
         r)
-            r="-r"
             options="$options -$opt"
             ;;
         a)
-            r=""
             options="$options -$opt"
             ;;
         l)
@@ -81,13 +78,19 @@ find "$dir" -type d | \
         size=0
         while IFS= read -r -d $'\0' file; do
             if [[ -f "$file" && $(basename "$file") =~ $regex ]]; then
-                size=$((size + $(du -b "$file" | awk '{print $1}')))
+                if [[ "$date" != ".*" ]]; then
+                    file_date=$(date -r "$file" +%Y%m%d)  # Get the modification date of the file
+                    if [[ "$file_date" -ge "$date" ]]; then
+                        size=$((size + $(du -b "$file" | cut -f1)))
+                    fi
+                else
+                    size=$((size + $(du -b "$file" | cut -f1)))
+                fi
             fi
         done < <(find "$folder" -type f -print0)
         if [ "$size" -gt 0 ]; then
             echo "$size $folder"
         fi
     done | \
-    awk -v date="$date" '$2 ~ date' | \
     sort $sort_order | \
     if [ -n "$limit" ]; then head -n "$limit"; else cat; fi
