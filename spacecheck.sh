@@ -63,10 +63,14 @@ if [ -z "$regex" ]; then
     regex=".*"              
 fi
 
-if [ -z "$r" ]; then
-    sort_order=""
-else
-    sort_order="$r"
+if [[ "$options" != *"-r"* ]] && [[ "$options" != *"-a"* ]]; then
+    sort_order="-k1,1nr"
+elif [[ "$options" == *"-r"* ]] && [[ "$options" != *"-a"* ]]; then
+    sort_order="-k1,1n"
+elif [[ "$options" != *"-r"* ]] && [[ "$options" == *"-a"* ]]; then
+    sort_order="-k2,2"
+elif [[ "$options" == *"-r"* ]] && [[ "$options" == *"-a"* ]]; then
+    sort_order="-k2,2r"
 fi
 
 # Print the options on the first line
@@ -85,5 +89,5 @@ find "$dir" -type d | \
         fi
     done | \
     awk -v date="$date" '$2 ~ date' | \
-    sort $r | \
+    sort $sort_order | \
     if [ -n "$limit" ]; then head -n "$limit"; else cat; fi
