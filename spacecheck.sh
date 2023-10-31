@@ -46,7 +46,7 @@ done
 shift $((OPTIND - 1))       # "deslocar" ou "remover" as opções de linha de comando já processadas
                             # de modo a que o diretório fique guardado na variável $1
 if [ $# -ne 1 ]; then
-    echo "Erro: É necessário especificar um e um só diretório." #verificar se o utilizar introduziu um diretório
+    echo "Erro: É necessário especificar um e um só diretório." # verificar se o utilizar introduziu um diretório
     exit 1
 fi
 
@@ -60,37 +60,41 @@ if [ -z "$regex" ]; then
     regex=".*"              
 fi
 
-if [[ "$options" != *"-r"* ]] && [[ "$options" != *"-a"* ]]; then
-    sort_order="-k1,1nr"
-elif [[ "$options" == *"-r"* ]] && [[ "$options" != *"-a"* ]]; then
-    sort_order="-k1,1n"
-elif [[ "$options" != *"-r"* ]] && [[ "$options" == *"-a"* ]]; then
-    sort_order="-k2,2"
-elif [[ "$options" == *"-r"* ]] && [[ "$options" == *"-a"* ]]; then
-    sort_order="-k2,2r"
+# manipulacao das flags -r e -a 
+if [[ "$options" != *"-r"* ]] && [[ "$options" != *"-a"* ]]; then      # quando ambas as flags nao foram inseridas;           
+    sort_order="-k1,1nr"                                               # classifica os dados por ordem decrescente com base na primeira coluna (-k1,1)
+elif [[ "$options" == *"-r"* ]] && [[ "$options" != *"-a"* ]]; then    # quando a flag -r foi inserida, mas a -a nao:
+    sort_order="-k1,1n"                                                # classifica os dados em ordem crescente com base na primeira coluna (-k1,1) 
+elif [[ "$options" != *"-r"* ]] && [[ "$options" == *"-a"* ]]; then    # quando a flag -r nao foi inseridas, mas a -a sim;
+    sort_order="-k2,2"                                                 # classifica os dados em ordem crescente com base na segunda coluna (-k2,2)
+elif [[ "$options" == *"-r"* ]] && [[ "$options" == *"-a"* ]]; then    # quando ambas as flags foram inseridas:
+    sort_order="-k2,2r"                                                # classifica os dados em ordem decrescente com base na segunda coluna (-k2,2).
 fi
 
 # Print the options on the first line
 echo "SIZE NAME $(date +%Y%m%d) $options $dir"
 
 find "$dir" -type d | \
-    while read -r folder; do
-        size=0
-        while IFS= read -r -d $'\0' file; do
-            if [[ -f "$file" && $(basename "$file") =~ $regex ]]; then
-                if [[ "$date" != ".*" ]]; then
-                    file_date=$(date -r "$file" +%Y%m%d)  # Get the modification date of the file
+    while read -r folder; do                                            # loop para encontrar os diretórios
+        size=0                                                          # inicializar a variável size
+        while IFS= read -r -d $'\0' file; do                            # loop para ver arquivos do diretório
+            if [[ -f "$file" && $(basename "$file") =~ $regex ]]; then  # verificaçao de expressao regular (-n)
+                if [[ "$date" != ".*" ]]; then                          # verificar se foi introduzida uma data
+                    file_date=$(date -r "$file" +%Y%m%d)                # obter a data de modifiçao do ficheiro
                     if [[ "$file_date" -ge "$date" ]]; then
-                        size=$((size + $(du -b "$file" | cut -f1)))
+                        size=$((size + $(du -b "$file" | cut -f1)))     # adicionar o tamanho do arquivo à variável size
                     fi
                 else
-                    size=$((size + $(du -b "$file" | cut -f1)))
+                    size=$((size + $(du -b "$file" | cut -f1)))         # adicionar o tamanho do arquivo à variável size
                 fi
-            fi
+            fi  
         done < <(find "$folder" -type f -print0)
         if [ "$size" -gt 0 ]; then
-            echo "$size $folder"
+            echo "$size $folder"                                        # print do size e do respetivo diretório
         fi
     done | \
     sort $sort_order | \
-    if [ -n "$limit" ]; then head -n "$limit"; else cat; fi
+    if [ -n "$limit" ]; then                                            # limitar a quantidade de saidas
+        head -n "$limit"
+    else cat
+    fi
