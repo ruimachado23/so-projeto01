@@ -4,6 +4,8 @@
 # Rui de Faria Machado, 113765, P6
 # João Manuel Vieira Roldão, 113920, P6
 
+exec &> spacecheck_$(date +%Y%m%d).txt      # guardar o output do script num ficheiro .txt
+
 # Inicializacao de variáveis
 regex=""
 date=""
