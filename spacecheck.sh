@@ -84,10 +84,19 @@ find "$dir" -type d | \
                 if [[ "$date" != ".*" ]]; then                          # verificar se foi introduzida uma data
                     file_date=$(date -r "$file" +%Y%m%d)                # obter a data de modifiçao do ficheiro
                     if [[ "$file_date" -ge "$date" ]]; then
-                        size=$((size + $(du -b "$file" | cut -f1)))     # adicionar o tamanho do arquivo à variável size
-                    fi
+                        file_size=$(du -b "$file" | cut -f1)
+                        if [ -n "$file_size" ]; then
+                            size=$((size + file_size))                  # adicionar o tamanho do ficheiro ao tamanho total
+                        else
+                            size="NA"                                   # se nao for possivel obter o tamanho do ficheiro, size = "NA"
+                        fi                    fi
                 else
-                    size=$((size + $(du -b "$file" | cut -f1)))         # adicionar o tamanho do arquivo à variável size
+                    file_size=$(du -b "$file" | cut -f1)
+                    if [ -n "$file_size" ]; then
+                        size=$((size + file_size))                      # adicionar o tamanho do ficheiro ao tamanho total
+                    else
+                        size="NA"                                       # se nao for possivel obter o tamanho do ficheiro, size = "NA"
+                    fi                
                 fi
             fi  
         done < <(find "$folder" -type f -print0)
