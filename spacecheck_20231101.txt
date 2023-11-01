@@ -1,0 +1,7 @@
+SIZE NAME 20231101  -d "20231001" /home/laptop-johnny/Secretária/Uni/2ºAno/SO
+1623434 /home/laptop-johnny/Secretária/Uni/2ºAno/SO
+1333114 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/Guiões
+85266 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P5
+3674 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P3
+2566 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P4
+0 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P2

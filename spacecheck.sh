@@ -89,22 +89,28 @@ find "$dir" -type d | \
                 if [[ "$date" != ".*" ]]; then
                     file_date=$(date -r "$file" +%Y%m%d)
                     if [[ "$file_date" -ge "$date" ]]; then
-                        file_size=$(du -b "$file" | cut -f1)
-                        if [ -n "$file_size" ] && [ "$file_size" -ge "$min_size" ]; then
-                            size=$((size + file_size))
+                        file_size=$(du -b "$file" 2>/dev/null | cut -f1)
+                        if [ -n "$file_size" ]; then
+                            if [ "$file_size" -ge "$min_size" ]; then
+                                size=$((size + file_size))
+                            fi
+                        else
+                            size="NA"  # Não foi possível determinar o tamanho do arquivo
                         fi
                     fi
                 else
-                    file_size=$(du -b "$file" | cut -f1)
-                    if [ -n "$file_size" ] && [ "$file_size" -ge "$min_size" ]; then
-                        size=$((size + file_size))
+                    file_size=$(du -b "$file" 2>/dev/null | cut -f1)
+                    if [ -n "$file_size" ]; then
+                        if [ "$file_size" -ge "$min_size" ]; then
+                            size=$((size + file_size))
+                        fi
+                    else
+                        size="NA"  # Não foi possível determinar o tamanho do arquivo
                     fi
                 fi
             fi
         done < <(find "$folder" -type f -print0)
-        if [ "$size" -ge "$min_size" ]; then  # Check if size is greater than or equal to the minimum size
-            echo "$size $folder"
-        fi
+        echo "$size $folder"
     done | \
     sort $sort_order | \
     if [ -n "$limit" ]; then
