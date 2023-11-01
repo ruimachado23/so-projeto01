@@ -12,7 +12,7 @@ date=""
 limit=""
 dir=""
 options=""
-min_size="0"  # Initialize the minimum size to 0 by default
+min_size=""
 
 # Processamento e Validação das opções da linha de comando
 while getopts "n:d:s:ral:" opt; do
@@ -26,7 +26,7 @@ while getopts "n:d:s:ral:" opt; do
             options="$options -$opt \"$OPTARG\""
             ;;
         s)
-            min_size="$OPTARG"  # Store the minimum size specified with -s
+            min_size="$OPTARG"
             options="$options -$opt \"$OPTARG\""
             ;;
         r)
@@ -61,6 +61,10 @@ fi                          # que é uma expressão regular que corresponde a qu
 
 if [ -z "$regex" ]; then
     regex=".*"
+fi
+
+if [ -z "$min_size" ]; then
+    min_size=0              # se a variável estiver vazia, o script define como 0
 fi
 
 # manipulacao das flags -r e -a
