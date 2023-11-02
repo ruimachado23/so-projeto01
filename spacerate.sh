@@ -36,13 +36,13 @@ declare -A data2                    # Array associativo para armazenar dados do 
 
 # Lê e armazena dados do primeiro arquivo no array associativo data1
 while read -r size path; do
-    data1["$path"]=$size
-done < "$1"
+   data1["$path"]=$size
+done < <(tail -n +2 "$1")
 
 # Lê e armazena dados do segundo arquivo no array associativo data2
 while read -r size path; do
-    data2["$path"]=$size
-done < "$2"
+   data2["$path"]=$size
+done < <(tail -n +2 "$2")
 
 # Print the headers
 echo "SIZE NAME"
@@ -61,11 +61,16 @@ show_difference() {
         echo "$size1 $path REMOVED"                 # diretório/arquivo removido - size2 está vazio
     else
         local diff=$((size2 - size1))
-        echo "$diff $path"                          # diferença de tamanho
+        if [ "$diff" -gt 0 ]; then
+            echo "$size2 $path NEW"             # diretório/arquivo adicionado - diff é positivo
+        elif [ "$diff" -lt 0 ]; then
+            echo "$size1 $path REMOVED"         # diretório/arquivo removido - diff é negativo
+        else
+            echo "0 $path"                      # sem alteração no tamanho
+        fi
     fi
 }
 
-# Skipping lines that start with "SIZE NAME"
 if [ "$reverse_sort" = true ] && [ "$alphabetical_sort" = true ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path"
