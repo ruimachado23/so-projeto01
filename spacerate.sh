@@ -4,11 +4,6 @@
 # Rui de Faria Machado, 113765, P6
 # João Manuel Vieira Roldão, 113920, P6
 
-if [ "$#" -ge 2 ]; then
-    echo "Usage: $0 [-r] [-a] <file1> <file2>"          # verificacao se o numero de args é válido
-    exit 1
-fi
-
 # inicializacao de variaveis
 reverse_sort=false      
 alphabetical_sort=false
@@ -31,6 +26,11 @@ done
 
 shift $((OPTIND-1))
 
+if [ "$#" -ne 2 ]; then
+    echo "Erro: É necessário especificar dois ficheiros do spacecheck."          # verificacao se o numero de args é válido
+    exit 1
+fi
+
 declare -A data1                    # Array associativo para armazenar dados do primeiro arquivo
 declare -A data2                    # Array associativo para armazenar dados do segundo arquivo
 
@@ -43,6 +43,9 @@ done < "$1"
 while read -r size path; do
     data2["$path"]=$size
 done < "$2"
+
+# Print the headers
+echo "SIZE NAME"
 
 # Função para exibir a diferença para um determinado caminho
 show_difference() {
@@ -62,21 +65,21 @@ show_difference() {
     fi
 }
 
-# manipulacao das opcoes de sort
+# Skipping lines that start with "SIZE NAME"
 if [ "$reverse_sort" = true ] && [ "$alphabetical_sort" = true ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path"
     done | sort -r -k2                              # ordem reversa alfabeticamente por caminho
-elif [ "$reverse_sort" = true ]; then
+elif [ "$reverse_sort" = true ] && [ "$alphabetical_sort" = false ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path"
     done | sort -r -k1                              # reversa numericamente por diferença de tamanho
-elif [ "$alphabetical_sort" = true ]; then
+elif [ "$reverse_sort" = false ] && [ "$alphabetical_sort" = true ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path" 
-    done | sort -k2                                 # alfabeticamente por caminho
-else
+    done | sort -k2                                 # alfabeticamente by path
+elif [ "$reverse_sort" = false ] && [ "$alphabetical_sort" = false ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path"
-    done | sort -k1                                 # numericamente por diferença de tamanho
+    done | sort -k1,1nr                            # numeric sorting by size (descending order)
 fi
