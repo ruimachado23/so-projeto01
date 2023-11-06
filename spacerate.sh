@@ -65,7 +65,11 @@ show_difference() {
     elif [ -z "$size1" ]; then
         echo "$size2 $path NEW"
     elif [ -z "$size2" ]; then
-        echo "$size1 $path REMOVED"
+        if [ "$size1" -gt 0 ]; then
+            echo "-$size1 $path REMOVED"
+        else
+            echo "$size1 $path REMOVED"
+        fi
     else
         local diff=$((size2 - size1))
         if [ "$diff" -gt 0 ]; then
@@ -85,13 +89,13 @@ if [ "$reverse_sort" = true ] && [ "$alphabetical_sort" = true ]; then
 elif [ "$reverse_sort" = true ] && [ "$alphabetical_sort" = false ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path"
-    done | sort -r -k1                              # reversa numericamente por diferença de tamanho
+    done | sort -n -k1,1                              # reversa numericamente por diferença de tamanho
 elif [ "$reverse_sort" = false ] && [ "$alphabetical_sort" = true ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path" 
-    done | sort -k1,1nr                            # numeric sorting by size (descending order)
+    done | sort -k2                            # numeric sorting by size (descending order)
 elif [ "$reverse_sort" = false ] && [ "$alphabetical_sort" = false ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path"
-    done | sort -k1,1nr -k2                      # Sort by size (descending) and then by path
+    done | sort -k1,1nr                    # Sort by size (descending) and then by path
 fi
