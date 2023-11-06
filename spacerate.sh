@@ -4,11 +4,11 @@
 # Rui de Faria Machado, 113765, P6
 # João Manuel Vieira Roldão, 113920, P6
 
-# Inicializacao de variáveis sort
+# inicialização de variáveis sort
 reverse_sort=false      
 alphabetical_sort=false
 
-# Processamento das opções sort
+# processamento das opções de sort
 while getopts "ra" opt; do
     case "$opt" in
         r)
@@ -18,84 +18,80 @@ while getopts "ra" opt; do
             alphabetical_sort=true
             ;;
         \?)
-            echo "Usage: $0 [-r] [-a] <file1> <file2>"
+            echo "Opção inválida." >&2                                           # validação da opção 
             exit 1
             ;;
     esac
 done
 
-shift $((OPTIND-1))                                                              # Shift dos argumentos
+shift $((OPTIND-1))                                                              # "deslocar" ou "remover" as opções de linha de comando já processadas
 
 if [ "$#" -ne 2 ]; then
-    echo "Erro: É necessário especificar dois ficheiros do spacecheck."          # Verificação se o número de argumentos é válido
+    echo "Erro: É necessário especificar dois ficheiros output do spacecheck."   # verificar se o utilizador introduziu dois ficheiros do spacecheck 
     exit 1
 fi
 
-declare -A data1                    # Array associativo para armazenar dados do primeiro arquivo
-declare -A data2                    # Array associativo para armazenar dados do segundo arquivo
+declare -A data1                    # array associativo para armazenar dados do primeiro ficheiro
+declare -A data2                    # array associativo para armazenar dados do segundo ficheiro
 
 
-# Leitura e armazenamento dados dos arquivos nos respetivos arrays associativos data1 e data2
+# leitura e armazenamento dados dos ficheiros nos respetivos arrays associativos data1 e data2
 while read -r size path; do
-   data1["$path"]=$size
-done < <(tail -n +2 "$1")
-while read -r size path; do
-   data2["$path"]=$size
+   data1["$path"]=$size             # guardar no array data1 uma key "path" para um valor "size", respetivo
+done < <(tail -n +2 "$1")           # ignorar a primeira linha (cabeçalho)
+while read -r size path; do         # guardar no array data2 uma key "path" para um valor "size", respetivo
+   data2["$path"]=$size             # ignorar a primeira linha (cabeçalho)
 done < <(tail -n +2 "$2")
 
-# Cruzamento dos dados dos dois arrays associativos
-for path in "${!data2[@]}"; do
-    if [ -z "${data1[$path]}" ]; then
-        data1["$path"]=""
-    fi
+# cruzamento dos dados dos dois arrays associativos
+for path in "${!data2[@]}"; do              # para cada path do data2
+    if [ -z "${data1[$path]}" ]; then       # se o data1 não tiver esse path como key no array
+        data1["$path"]=""                   # cria uma com size="" (vazio)
+    fi                                      # desta forma, conseguimos verificar path que foram adicionados
 done
 
-# Header da tabela
+# cabeçalho do output
 echo "SIZE NAME"
 
-# Função para exibir a diferença entre os sizes dos paths
+# função para exibir a diferença entre os sizes dos paths
 show_difference() {
+    # inicialização de variáveis
     local path=$1
     local size1=${data1[$path]}
     local size2=${data2[$path]}
 
-    #Verificação se o path foi removido ou adicionado
-    if [ -z "$size1" ] && [ -z "$size2" ]; then
-        echo "0 $path"
-    elif [ -z "$size1" ]; then
-        echo "$size2 $path NEW"
-    elif [ -z "$size2" ]; then
-        if [ "$size1" -gt 0 ]; then                                 # Para colocar o size negativo, já que o path foi removido
-            echo "-$size1 $path REMOVED"
+    # verificação se o path foi removido ou adicionado
+    if [ -z "$size1" ] && [ -z "$size2" ]; then                     # verifica se os dois sizes estão vazios
+        echo "0 $path"                                              # size igual a zero
+    elif [ -z "$size1" ]; then                                      # verifica se o size1 está vazio
+        echo "$size2 $path NEW"                                     # é um novo path que está no data2 e não no data1
+    elif [ -z "$size2" ]; then                                      # verifica se o size2 está vazio
+        if [ "$size1" -gt 0 ]; then
+            echo "-$size1 $path REMOVED"                            # path removido, então size fica menor que zero
         else
-            echo "$size1 $path REMOVED"
+            echo "$size1 $path REMOVED"                             # path removido
         fi
     else
-        local diff=$((size2 - size1))                               # Diferença entre os sizes dos paths
-        if [ "$diff" -gt 0 ]; then
-            echo "$diff $path"
-        elif [ "$diff" -lt 0 ]; then
-            echo "$diff $path"
-        else
-            echo "0 $path"
-        fi
+        local diff=$((size2 - size1))                               # diferença entre os sizes dos paths que estão nos ficheiros
+        echo "$diff $path"                                          # print da diferença e do path
     fi
 }
 
+# manipulação da função show_difference() de acordo com as variáveis sort 
 if [ "$reverse_sort" = true ] && [ "$alphabetical_sort" = true ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path"
-    done | sort -r -k2                                              # Ordem reversa do sort alfabeticamente
+    done | sort -r -k2                                              # ordem reversa do sort alfabeticamente
 elif [ "$reverse_sort" = true ] && [ "$alphabetical_sort" = false ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path"
-    done | sort -n -k1,1                                            # Ordem reversa por size (menor para o maior)
+    done | sort -n -k1,1                                            # ordem reversa por size (menor para o maior)
 elif [ "$reverse_sort" = false ] && [ "$alphabetical_sort" = true ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path" 
-    done | sort -k2                                                 # Ordem alfabética
+    done | sort -k2                                                 # ordem alfabética
 elif [ "$reverse_sort" = false ] && [ "$alphabetical_sort" = false ]; then
     for path in "${!data1[@]}"; do
         show_difference "$path"
-    done | sort -k1,1nr                                             # Ordem por size (maior para o menor)
+    done | sort -k1,1nr                                             # ordem por size (maior para o menor)
 fi

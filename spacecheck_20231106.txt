@@ -1,0 +1,4 @@
+SIZE NAME 20231106  -n "caralhao" /home/rmachado/Pictures
+53912 /home/rmachado/Pictures
+53912 /home/rmachado/Pictures/Screenshots
+0 /home/rmachado/Pictures/Wallpapers
