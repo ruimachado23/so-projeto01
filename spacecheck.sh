@@ -4,8 +4,6 @@
 # Rui de Faria Machado, 113765, P6
 # João Manuel Vieira Roldão, 113920, P6
 
-exec &> spacecheck_$(date +%Y%m%d).txt      # guardar o output do script num ficheiro .txt
-
 # inicialização de variáveis
 regex=""
 provited_date=""
@@ -14,15 +12,15 @@ dir=""
 options=""
 min_size=""
 
-parse_date() {
+parse_date() {                                                      # funcao para lidar  com a data inserida
     input_date="$1"
-    # Use awk to extract the month, day, and time
-    month=$(echo "$input_date" | awk '{print $1}')
+    # Extrair o mês, o dia e a hora
+    month=$(echo "$input_date" | awk '{print $1}')  
     day=$(echo "$input_date" | awk '{print $2}')
     time=$(echo "$input_date" | awk '{print $3}')
-    # Construct a date in the format "MMM DD HH:MM YYYY"
+    # Mudar a data para o formato "MMM DD HH:MM YYYY"
     formatted_date="$month $day $time $(date +%Y)"
-    # Use date to convert the formatted date into seconds since the epoch
+    # usar a data para converter a formatada em segundos
     date -d "$formatted_date" +%s
 }
 
@@ -69,16 +67,15 @@ done
 
 shift $((OPTIND - 1))       # "deslocar" ou "remover" as opções de linha de comando já processadas
                             # de modo a que o diretório fique guardado na variável $1
-if [ $# -ne 1 ]; then
-    echo "Erro: É necessário especificar um e um só diretório."     # verificar se o utilizador introduziu um e um só diretório
+if [ $# -eq 0 ]; then
+    echo "Erro: É necessário especificar um ou mais diretórios."     # verificar se o utilizador introduziu pelo menos um diretório
     exit 1
 fi
 
-dir="$1"                    # passar o diretório para a variável "dir"
 
 if [ -z "$provited_date" ]; then
     converted_date=".*"               # se a variável estiver vazia, o script define como ".*",
-fi                          # corresponde a qualquer sequência de caracteres
+fi                                    # corresponde a qualquer sequência de caracteres
 
 if [ -z "$regex" ]; then
     regex=".*"
@@ -100,43 +97,45 @@ elif [[ "$options" == *"-r"* ]] && [[ "$options" == *"-a"* ]]; then    # quando 
 fi
 
 # print do cabeçalho
-echo "SIZE NAME $(date +%Y%m%d)$options $dir"
+echo "SIZE NAME $(date +%Y%m%d)$options $@"
 
-# pesquisa do diretório, atendendo critérios
-find "$dir" -type d | \
-    while read -r folder; do
-        size=0
-        while IFS= read -r -d $'\0' file; do
-            if [[ -f "$file" && $(basename "$file") =~ $regex ]]; then      # manipulação de acordo com a flag "-n" (name)
-                if [[ "$converted_date" != ".*" ]]; then                              # manipulação de acordo com a flag "-d" (date)
-                    file_date=$(date -r "$file" +%s)                        # quando é introduzida data
-                    if [[ "$file_date" -ge "$converted_date" ]]; then
-                        file_size=$(du -b "$file" 2>/dev/null | cut -f1)    
+for dir in $@; do                                                       # for loop para percorrer os diretórios
+    # pesquisa do diretório, atendendo critérios
+    find "$dir" -type d | \
+        while read -r folder; do
+            size=0
+            while IFS= read -r -d $'\0' file; do
+                if [[ -f "$file" && $(basename "$file") =~ $regex ]]; then      # manipulação de acordo com a flag "-n" (name)
+                    if [[ "$converted_date" != ".*" ]]; then                              # manipulação de acordo com a flag "-d" (date)
+                        file_date=$(date -r "$file" +%s)                        # quando é introduzida data
+                        if [[ "$file_date" -ge "$converted_date" ]]; then
+                            file_size=$(du -b "$file" 2>/dev/null | cut -f1)    
+                            if [ -n "$file_size" ]; then
+                                if [ "$file_size" -ge "$min_size" ]; then       # manipulação de acordo com a flag "-s" (size)
+                                    size=$((size + file_size))
+                                fi
+                            else
+                                size="NA"                                       # não foi possível determinar o tamanho do arquivo
+                            fi
+                        fi
+                    else                                                        # quando não é introduzida data
+                        file_size=$(du -b "$file" 2>/dev/null | cut -f1)
                         if [ -n "$file_size" ]; then
-                            if [ "$file_size" -ge "$min_size" ]; then       # manipulação de acordo com a flag "-s" (size)
+                            if [ "$file_size" -ge "$min_size" ]; then
                                 size=$((size + file_size))
                             fi
                         else
-                            size="NA"                                       # não foi possível determinar o tamanho do arquivo
+                            size="NA"                                           # não foi possível determinar o tamanho do arquivo
                         fi
-                    fi
-                else                                                        # quando não é introduzida data
-                    file_size=$(du -b "$file" 2>/dev/null | cut -f1)
-                    if [ -n "$file_size" ]; then
-                        if [ "$file_size" -ge "$min_size" ]; then
-                            size=$((size + file_size))
-                        fi
-                    else
-                        size="NA"                                           # não foi possível determinar o tamanho do arquivo
                     fi
                 fi
-            fi
-        done < <(find "$folder" -type f -print0)
-        echo "$size $folder"                                                # print do size e do folder
-    done | \
-    # manipulação de acordo com as flags de sort "-r" e "-a" (reverse e alphabetical, respetivamente) 
-    sort $sort_order | \
-    if [ -n "$limit" ]; then                                                # manipulação de acordo com a flag "-l" (limit)
-        head -n "$limit"
-    else cat
-    fi
+            done < <(find "$folder" -type f -print0)
+            echo "$size $folder"                                                # print do size e do folder
+        done | \
+        # manipulação de acordo com as flags de sort "-r" e "-a" (reverse e alphabetical, respetivamente) 
+        sort $sort_order | \
+        if [ -n "$limit" ]; then                                                # manipulação de acordo com a flag "-l" (limit)
+            head -n "$limit"
+        else cat
+        fi
+done
