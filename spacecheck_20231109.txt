@@ -1,0 +1,8 @@
+SIZE NAME 20231109 -d "Nov 5 10:00" /home/laptop-johnny/Secretária/Uni/2ºAno/SO
+0 /home/laptop-johnny/Secretária/Uni/2ºAno/SO
+0 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/Guiões
+0 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P2
+0 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P3
+0 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P4
+0 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P5
+0 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P6

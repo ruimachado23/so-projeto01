@@ -8,11 +8,23 @@ exec &> spacecheck_$(date +%Y%m%d).txt      # guardar o output do script num fic
 
 # inicialização de variáveis
 regex=""
-date=""
+provited_date=""
 limit=""
 dir=""
 options=""
 min_size=""
+
+parse_date() {
+    input_date="$1"
+    # Use awk to extract the month, day, and time
+    month=$(echo "$input_date" | awk '{print $1}')
+    day=$(echo "$input_date" | awk '{print $2}')
+    time=$(echo "$input_date" | awk '{print $3}')
+    # Construct a date in the format "MMM DD HH:MM YYYY"
+    formatted_date="$month $day $time $(date +%Y)"
+    # Use date to convert the formatted date into seconds since the epoch
+    date -d "$formatted_date" +%s
+}
 
 # processamento e validação das opções da linha de comando
 while getopts "n:d:s:ral:" opt; do                                  # ":" após letra indica que necessita de argumento
@@ -22,8 +34,17 @@ while getopts "n:d:s:ral:" opt; do                                  # ":" após 
             options="$options -$opt \"$OPTARG\""                    # adicionar a variável à string options
             ;;
         d)
-            date="$OPTARG"
+            provited_date="$OPTARG"
             options="$options -$opt \"$OPTARG\""
+
+            if [[ -n "$provited_date" ]]; then
+                converted_date=$(parse_date "$provited_date")
+                da=1
+                dc=0
+            else
+                echo "Erro: Data em formato inválido --> \"MMM DD HH:MM\"" >&2
+                exit 1
+            fi
             ;;
         s)
             min_size="$OPTARG"
@@ -55,8 +76,8 @@ fi
 
 dir="$1"                    # passar o diretório para a variável "dir"
 
-if [ -z "$date" ]; then
-    date=".*"               # se a variável estiver vazia, o script define como ".*",
+if [ -z "$provited_date" ]; then
+    converted_date=".*"               # se a variável estiver vazia, o script define como ".*",
 fi                          # corresponde a qualquer sequência de caracteres
 
 if [ -z "$regex" ]; then
@@ -79,7 +100,7 @@ elif [[ "$options" == *"-r"* ]] && [[ "$options" == *"-a"* ]]; then    # quando 
 fi
 
 # print do cabeçalho
-echo "SIZE NAME $(date +%Y%m%d) $options $dir"
+echo "SIZE NAME $(date +%Y%m%d)$options $dir"
 
 # pesquisa do diretório, atendendo critérios
 find "$dir" -type d | \
@@ -87,9 +108,9 @@ find "$dir" -type d | \
         size=0
         while IFS= read -r -d $'\0' file; do
             if [[ -f "$file" && $(basename "$file") =~ $regex ]]; then      # manipulação de acordo com a flag "-n" (name)
-                if [[ "$date" != ".*" ]]; then                              # manipulação de acordo com a flag "-d" (date)
-                    file_date=$(date -r "$file" +%Y%m%d)                    # quando é introduzida data
-                    if [[ "$file_date" -ge "$date" ]]; then
+                if [[ "$converted_date" != ".*" ]]; then                              # manipulação de acordo com a flag "-d" (date)
+                    file_date=$(date -r "$file" +%s)                        # quando é introduzida data
+                    if [[ "$file_date" -ge "$converted_date" ]]; then
                         file_size=$(du -b "$file" 2>/dev/null | cut -f1)    
                         if [ -n "$file_size" ]; then
                             if [ "$file_size" -ge "$min_size" ]; then       # manipulação de acordo com a flag "-s" (size)
