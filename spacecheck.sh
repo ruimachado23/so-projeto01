@@ -12,13 +12,13 @@ dir=""
 options=""
 min_size=""
 
-parse_date() {                                                      # funcao para lidar  com a data inserida
+parse_date() {                                                      # função para manipular a data inserida
     input_date="$1"
-    # Extrair o mês, o dia e a hora
+    # extrair o mês, o dia e a hora
     month=$(echo "$input_date" | awk '{print $1}')  
     day=$(echo "$input_date" | awk '{print $2}')
     time=$(echo "$input_date" | awk '{print $3}')
-    # Mudar a data para o formato "MMM DD HH:MM YYYY"
+    # mudar a data para o formato "MMM DD HH:MM YYYY"
     formatted_date="$month $day $time $(date +%Y)"
     # usar a data para converter a formatada em segundos
     date -d "$formatted_date" +%s
@@ -36,11 +36,11 @@ while getopts "n:d:s:ral:" opt; do                                  # ":" após 
             options="$options -$opt \"$OPTARG\""
 
             if [[ -n "$provited_date" ]]; then
-                converted_date=$(parse_date "$provited_date")
+                converted_date=$(parse_date "$provited_date")               # uso da funcao parse_date, para manipular a data de input
                 da=1
                 dc=0
             else
-                echo "Erro: Data em formato inválido --> \"MMM DD HH:MM\"" >&2
+                echo "Erro: Data em formato inválido --> \"MMM DD HH:MM\"" >&2       # print da formatação esperada
                 exit 1
             fi
             ;;
@@ -99,7 +99,7 @@ fi
 # print do cabeçalho
 echo "SIZE NAME $(date +%Y%m%d)$options $@"
 
-for dir in $@; do                                                       # for loop para percorrer os diretórios
+for dir in $@; do                                                       # for loop para percorrer os diretórios passados como argumento
     # pesquisa do diretório, atendendo critérios
     find "$dir" -type d | \
         while read -r folder; do
