@@ -1,9 +1,0 @@
-date: data inválida "Oct 20 10:00:00:00 2023"
-SIZE NAME 20231106  -d "Oct 20 10:00" /home/laptop-johnny/Secretária/Uni/2ºAno/SO
-2877450 /home/laptop-johnny/Secretária/Uni/2ºAno/SO
-2567470 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/Guiões
-217312 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P6
-85266 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P5
-3674 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P3
-2566 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P4
-1162 /home/laptop-johnny/Secretária/Uni/2ºAno/SO/P2

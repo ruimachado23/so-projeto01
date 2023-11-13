@@ -18,7 +18,7 @@ while getopts "ra" opt; do
             alphabetical_sort=true
             ;;
         \?)
-            echo "Opção inválida." >&2                                           # validação da opção 
+            echo "Opção inválida." >&2                                           # verificar se a opção é valida
             exit 1
             ;;
     esac
@@ -27,12 +27,12 @@ done
 shift $((OPTIND-1))                                                              # "deslocar" ou "remover" as opções de linha de comando já processadas
 
 if [ "$#" -ne 2 ]; then
-    echo "Erro: É necessário especificar dois ficheiros output do spacecheck."   # verificar se o utilizador introduziu dois ficheiros do spacecheck 
+    echo "Erro: É necessário especificar dois ficheiros output do spacecheck."   # verificar se o utilizador introduziu exatamente dois outputs do spacecheck 
     exit 1
 fi
 
-declare -A data1                    # array associativo para armazenar dados do primeiro ficheiro
-declare -A data2                    # array associativo para armazenar dados do segundo ficheiro
+declare -A data1                    # array associativo para armazenar dados do primeiro output
+declare -A data2                    # array associativo para armazenar dados do segundo output
 
 
 # leitura e armazenamento dados dos ficheiros nos respetivos arrays associativos data1 e data2

@@ -20,7 +20,7 @@ parse_date() {                                                      # função p
     time=$(echo "$input_date" | awk '{print $3}')
     # mudar a data para o formato "MMM DD HH:MM YYYY"
     formatted_date="$month $day $time $(date +%Y)"
-    # usar a data para converter a formatada em segundos
+    # usar a data para converter a formatada para segundos - UNIX timestamp
     date -d "$formatted_date" +%s
 }
 
@@ -36,11 +36,11 @@ while getopts "n:d:s:ral:" opt; do                                  # ":" após 
             options="$options -$opt \"$OPTARG\""
 
             if [[ -n "$provited_date" ]]; then
-                converted_date=$(parse_date "$provited_date")               # uso da funcao parse_date, para manipular a data de input
+                converted_date=$(parse_date "$provited_date")               # uso da função parse_date para manipular a data de input
                 da=1
                 dc=0
             else
-                echo "Erro: Data em formato inválido --> \"MMM DD HH:MM\"" >&2       # print da formatação esperada
+                echo "Erro: Data em formato inválido --> \"MMM DD HH:MM\"" >&2       # print da formatação válida
                 exit 1
             fi
             ;;
@@ -59,14 +59,14 @@ while getopts "n:d:s:ral:" opt; do                                  # ":" após 
             options="$options -$opt \"$OPTARG\""
             ;;
         \?)
-            echo "Opção inválida: -$OPTARG" >&2                     # validação da opção 
+            echo "Opção inválida: -$OPTARG" >&2                     # verificar se a opção é valida
             exit 1
             ;;
     esac
 done
 
-shift $((OPTIND - 1))       # "deslocar" ou "remover" as opções de linha de comando já processadas
-                            # de modo a que o diretório fique guardado na variável $1
+shift $((OPTIND - 1))       # "deslocar" ou "remover" as opções da linha de comando já processada
+                            # de modo a guardas os diretórios inseridos
 if [ $# -eq 0 ]; then
     echo "Erro: É necessário especificar um ou mais diretórios."     # verificar se o utilizador introduziu pelo menos um diretório
     exit 1
@@ -75,14 +75,14 @@ fi
 
 if [ -z "$provited_date" ]; then
     converted_date=".*"               # se a variável estiver vazia, o script define como ".*",
-fi                                    # corresponde a qualquer sequência de caracteres
+fi                                    # que corresponde a qualquer sequência de caracteres
 
 if [ -z "$regex" ]; then
     regex=".*"
 fi
 
 if [ -z "$min_size" ]; then
-    min_size=0              # se a variável estiver vazia, o script define como 0
+    min_size=0                      # se a variável estiver vazia, o script define como 0
 fi
 
 # manipulação das flags -r e -a
@@ -106,7 +106,7 @@ for dir in $@; do                                                       # for lo
             size=0
             while IFS= read -r -d $'\0' file; do
                 if [[ -f "$file" && $(basename "$file") =~ $regex ]]; then      # manipulação de acordo com a flag "-n" (name)
-                    if [[ "$converted_date" != ".*" ]]; then                              # manipulação de acordo com a flag "-d" (date)
+                    if [[ "$converted_date" != ".*" ]]; then                    # manipulação de acordo com a flag "-d" (date)
                         file_date=$(date -r "$file" +%s)                        # quando é introduzida data
                         if [[ "$file_date" -ge "$converted_date" ]]; then
                             file_size=$(du -b "$file" 2>/dev/null | cut -f1)    
